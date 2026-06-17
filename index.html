@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teaching QA · Operations Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand:#17A697;
+    --brand-dark:#0F6E56;
+    --brand-tint:#E1F5EE;
+    --bg:#F7F6F1;
+    --surface:#FFFFFF;
+    --surface-2:#F1F1EC;
+    --line:#E6E5DE;
+    --line-strong:#D6D5CC;
+    --text:#1E2522;
+    --text-muted:#6B6F6B;
+    --text-faint:#9A9D98;
+    --danger:#C0492C;
+    --radius:14px;
+    --radius-sm:9px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --brand:#3BC4B0;
+      --brand-dark:#9FE1CB;
+      --brand-tint:#13322B;
+      --bg:#101714;
+      --surface:#172420;
+      --surface-2:#1E2C27;
+      --line:#26342E;
+      --line-strong:#33433C;
+      --text:#E8EAE6;
+      --text-muted:#9DA8A2;
+      --text-faint:#6E7872;
+      --danger:#E8836A;
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{
+    font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo',sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+    padding:32px 20px 56px;
+  }
+  .wrap{max-width:960px;margin:0 auto;}
+
+  header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:26px;}
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-mark{width:38px;height:38px;border-radius:11px;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:17px;letter-spacing:-.5px;}
+  .title{font-family:'Fraunces',serif;font-size:25px;font-weight:600;letter-spacing:-.4px;line-height:1.15;margin:0;}
+  .sub{font-size:13.5px;color:var(--text-muted);margin-top:2px;}
+  .datebox{text-align:right;font-size:13px;color:var(--text-muted);}
+  .datebox .d{font-size:15px;color:var(--text);font-weight:500;}
+
+  .strip{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px;}
+  .metric{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px;}
+  .metric .lbl{font-size:12.5px;color:var(--text-muted);line-height:1.3;min-height:32px;}
+  .metric .val{font-size:28px;font-weight:600;letter-spacing:-1px;margin-top:6px;outline:none;}
+  .metric .val[contenteditable]:focus{color:var(--brand-dark);}
+  .metric.alert .val{color:var(--danger);}
+  .editbadge{font-size:11px;color:var(--text-faint);margin-top:2px;}
+
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:18px;}
+  .card-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;}
+  .card-title{display:flex;align-items:center;gap:9px;font-size:15.5px;font-weight:600;}
+  .dot{width:8px;height:8px;border-radius:50%;background:var(--brand);}
+  .count{font-size:12.5px;font-weight:500;color:var(--brand-dark);background:var(--brand-tint);padding:3px 11px;border-radius:20px;white-space:nowrap;}
+  .track{height:6px;background:var(--surface-2);border-radius:4px;overflow:hidden;margin-bottom:6px;}
+  .fill{height:100%;width:0;background:var(--brand);border-radius:4px;transition:width .25s ease;}
+
+  .task{display:flex;align-items:flex-start;gap:11px;padding:9px 0;cursor:pointer;font-size:14px;border-top:1px solid var(--line);}
+  .task:first-of-type{border-top:none;}
+  .task input{appearance:none;-webkit-appearance:none;width:19px;height:19px;border:1.5px solid var(--line-strong);border-radius:6px;margin:0;flex-shrink:0;cursor:pointer;position:relative;transition:.15s;background:var(--surface);}
+  .task input:checked{background:var(--brand);border-color:var(--brand);}
+  .task input:checked::after{content:"";position:absolute;left:6px;top:2px;width:4px;height:9px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);}
+  .task input:focus-visible{outline:2px solid var(--brand);outline-offset:2px;}
+  .task span{transition:.15s;}
+  .task input:checked + span{text-decoration:line-through;color:var(--text-faint);}
+
+  .ref-title{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;margin:0 0 4px;}
+  .ref-row{display:flex;gap:10px;font-size:13.5px;color:var(--text-muted);padding:8px 0;border-top:1px solid var(--line);line-height:1.45;}
+  .ref-row:first-of-type{border-top:none;}
+  .num{flex-shrink:0;width:20px;height:20px;border-radius:50%;background:var(--brand-tint);color:var(--brand-dark);font-size:11.5px;font-weight:600;display:flex;align-items:center;justify-content:center;}
+  .escal{border-color:var(--line-strong);}
+  .escal .body{font-size:13.5px;color:var(--text-muted);line-height:1.6;}
+  .escal .body b{color:var(--text);font-weight:600;}
+
+  footer.foot{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-top:24px;font-size:12.5px;color:var(--text-faint);}
+  .btn{font-family:inherit;font-size:13px;font-weight:500;color:var(--text-muted);background:var(--surface);border:1px solid var(--line-strong);border-radius:9px;padding:8px 14px;cursor:pointer;transition:.15s;}
+  .btn:hover{background:var(--surface-2);color:var(--text);}
+  .btn:active{transform:scale(.98);}
+
+  .note{font-size:12px;color:var(--text-faint);display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+
+  @media (max-width:720px){
+    .strip{grid-template-columns:1fr 1fr;}
+    .grid-2{grid-template-columns:1fr;}
+    .title{font-size:22px;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <div class="brand-mark">25</div>
+      <div>
+        <h1 class="title">Teaching QA · Operations Dashboard</h1>
+        <div class="sub">TS Team — class quality &amp; teacher feedback</div>
+      </div>
+    </div>
+    <div class="datebox">
+      <div class="d" id="today">—</div>
+      <div id="saved">not saved yet</div>
+    </div>
+  </header>
+
+  <div class="note">Queue numbers are editable — click a number to update it. Checks and numbers save in this browser.</div>
+  <section class="strip">
+    <div class="metric"><div class="lbl">New-teacher reviews due</div><div class="val" contenteditable="true" data-metric="m1">3</div></div>
+    <div class="metric alert"><div class="lbl">Complaints to investigate</div><div class="val" contenteditable="true" data-metric="m2">1</div></div>
+    <div class="metric"><div class="lbl">Re-checks scheduled</div><div class="val" contenteditable="true" data-metric="m3">5</div></div>
+    <div class="metric"><div class="lbl">Avg QA score (this week)</div><div class="val" contenteditable="true" data-metric="m4">3.8</div></div>
+  </section>
+
+  <article class="card" data-section="daily">
+    <div class="card-head">
+      <div class="card-title"><span class="dot"></span>Daily</div>
+      <span class="count">0 / 4</span>
+    </div>
+    <div class="track"><div class="fill"></div></div>
+    <label class="task"><input type="checkbox"><span>Clear new-teacher First Class review queue (24h SLA)</span></label>
+    <label class="task"><input type="checkbox"><span>Investigate complaint-flagged classes — first report within 4h</span></label>
+    <label class="task"><input type="checkbox"><span>Review today's scheduled re-checks</span></label>
+    <label class="task"><input type="checkbox"><span>Log scores &amp; comments into the tracking sheet</span></label>
+  </article>
+
+  <div class="grid-2">
+    <article class="card" data-section="weekly">
+      <div class="card-head">
+        <div class="card-title"><span class="dot"></span>Weekly</div>
+        <span class="count">0 / 3</span>
+      </div>
+      <div class="track"><div class="fill"></div></div>
+      <label class="task"><input type="checkbox"><span>Spot-check existing teachers (random + risk-based sample)</span></label>
+      <label class="task"><input type="checkbox"><span>Write weekly QA summary — count, average, top 3 issues, flags</span></label>
+      <label class="task"><input type="checkbox"><span>Sync with TS Team</span></label>
+    </article>
+
+    <article class="card" data-section="monthly">
+      <div class="card-head">
+        <div class="card-title"><span class="dot"></span>Monthly</div>
+        <span class="count">0 / 4</span>
+      </div>
+      <div class="track"><div class="fill"></div></div>
+      <label class="task"><input type="checkbox"><span>Per-teacher QA trend report → feed the KPI dashboard</span></label>
+      <label class="task"><input type="checkbox"><span>Send recurring issues to Manager for training updates</span></label>
+      <label class="task"><input type="checkbox"><span>Collect best-practice clips for the training library</span></label>
+      <label class="task"><input type="checkbox"><span>Review &amp; recalibrate the rubric (prevent score drift)</span></label>
+    </article>
+  </div>
+
+  <div class="grid-2">
+    <article class="card">
+      <h2 class="ref-title"><span class="dot"></span>Onboarding cadence</h2>
+      <div class="ref-row">Review First Class within 24 hours</div>
+      <div class="ref-row">Send feedback before the next class</div>
+      <div class="ref-row">Re-check the very next class</div>
+      <div class="ref-row">Graduate after 2 consecutive passes</div>
+      <div class="ref-row">Cap mandatory reviews at 3–5 classes</div>
+    </article>
+
+    <article class="card">
+      <h2 class="ref-title"><span class="dot"></span>Sampling priority</h2>
+      <div class="ref-row"><span class="num">1</span>New-teacher First Class — review all</div>
+      <div class="ref-row"><span class="num">2</span>Complaint-flagged classes — review all</div>
+      <div class="ref-row"><span class="num">3</span>Risk-based: low renewal / conversion / rating</div>
+      <div class="ref-row"><span class="num">4</span>Random — 1 class per teacher per month</div>
+    </article>
+  </div>
+
+  <article class="card escal">
+    <h2 class="ref-title" style="margin-bottom:8px;"><span class="dot" style="background:var(--danger);"></span>Escalation rule</h2>
+    <div class="body">No improvement after repeated feedback → <b>recommend the teacher to the TS Team</b> for additional training or probation. Log red flags (no-show, conduct, technical failure) <b>separately from scores</b> so they don't distort the rubric.</div>
+  </article>
+
+  <footer class="foot">
+    <span>Checklists reset automatically each day · weekly &amp; monthly persist until you clear them.</span>
+    <button class="btn" id="reset">Reset all checks</button>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  var KEY = "qa-dashboard-v1";
+  function todayStr(){ var d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+
+  document.getElementById("today").textContent = new Date().toLocaleDateString(undefined,{weekday:"short",year:"numeric",month:"short",day:"numeric"});
+
+  var state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY)) || {}; } catch(e){ state = {}; }
+
+  if(state.dailyDate && state.dailyDate !== todayStr()){
+    if(state.checks) delete state.checks.daily;
+  }
+
+  function save(){
+    state.dailyDate = todayStr();
+    try{
+      localStorage.setItem(KEY, JSON.stringify(state));
+      document.getElementById("saved").textContent = "saved " + new Date().toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});
+    }catch(e){
+      document.getElementById("saved").textContent = "saving unavailable";
+    }
+  }
+
+  function update(card){
+    var sec = card.getAttribute("data-section");
+    var boxes = [].slice.call(card.querySelectorAll(".task input"));
+    var done = boxes.filter(function(b){return b.checked;}).length;
+    card.querySelector(".count").textContent = done + " / " + boxes.length;
+    card.querySelector(".fill").style.width = Math.round(done/boxes.length*100) + "%";
+    state.checks = state.checks || {};
+    state.checks[sec] = boxes.map(function(b){return b.checked;});
+  }
+
+  [].slice.call(document.querySelectorAll("[data-section]")).forEach(function(card){
+    var sec = card.getAttribute("data-section");
+    var boxes = [].slice.call(card.querySelectorAll(".task input"));
+    if(state.checks && state.checks[sec]){
+      state.checks[sec].forEach(function(v,i){ if(boxes[i]) boxes[i].checked = v; });
+    }
+    boxes.forEach(function(b){ b.addEventListener("change", function(){ update(card); save(); }); });
+    update(card);
+  });
+
+  [].slice.call(document.querySelectorAll("[data-metric]")).forEach(function(el){
+    var k = el.getAttribute("data-metric");
+    if(state.metrics && state.metrics[k] !== undefined) el.textContent = state.metrics[k];
+    el.addEventListener("input", function(){
+      state.metrics = state.metrics || {};
+      state.metrics[k] = el.textContent.trim();
+      save();
+    });
+    el.addEventListener("keydown", function(e){ if(e.key==="Enter"){ e.preventDefault(); el.blur(); } });
+  });
+
+  document.getElementById("reset").addEventListener("click", function(){
+    state.checks = {};
+    [].slice.call(document.querySelectorAll(".task input")).forEach(function(b){ b.checked=false; });
+    [].slice.call(document.querySelectorAll("[data-section]")).forEach(update);
+    save();
+  });
+
+  if(state.metrics || state.checks) save();
+})();
+</script>
+</body>
+</html>
